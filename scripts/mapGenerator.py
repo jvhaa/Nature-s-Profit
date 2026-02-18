@@ -23,9 +23,7 @@ class map():
         right = (self.game.camera[0]+self.game.screen.width//2)//self.tileSize+5
         top = (self.game.camera[1]-self.game.screen.height//2)//self.tileSize-5
         bottom = (self.game.camera[1]+self.game.screen.height//2)//self.tileSize+5
-        
-        xoffset = self.game.camera[0] % self.tileSize
-        yoffset = self.game.camera[1] % self.tileSize
+        print(left, right, top, bottom)
         
         for y in range(top, bottom):
             for x in range(left, right):

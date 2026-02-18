@@ -2,7 +2,7 @@ import pygame
 import math
 
 class Entity():
-    def __init__(self, x, y, width, height, game):
+    def __init__(self, x, y, width, height, game, speed=0):
         self.x = x
         self.y = y
         self.width = width
@@ -11,6 +11,7 @@ class Entity():
         self.facingLeft = False
         self.movement = [0, 0]
         self.vel = [0, 0]
+        self.speed = speed
         
     def tick(self):
         if self.movement[0] != 0:
@@ -18,6 +19,10 @@ class Entity():
                 self.facingLeft = True
             else:
                 self.facingLeft = False
+        if self.movement != [0, 0]:
+            angle = math.atan2(self.movement[1], self.movement[0])
+            self.movement[0] = int(math.cos(angle) * self.speed)
+            self.movement[1] = int(math.sin(angle) * self.speed)
         self.x += self.movement[0] + self.vel[0]
         self.y += self.movement[1] + self.vel[1]
         
