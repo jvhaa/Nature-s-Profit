@@ -1,6 +1,8 @@
 import pygame
 from scripts.player import player
+from scripts.mobs import mobs
 from scripts.images import Animation, loadImages, loadImage
+from scripts.mapGenerator import map
 
 pygame.init()
 
@@ -12,7 +14,18 @@ class main():
         self.player = player(100, 100, 50, 50, self)
         self.assets = {
             "default" : loadImage("default") ,
+            "0" : loadImage("0"),
+            "1" : loadImage("1"),
+            "2" : loadImage("2"),
+            "3" : loadImage("3"),
+            "4" : loadImage("4"),
         }
+        self.entities = [
+            self.player,
+            mobs(300, 300, 50, 50, self, 6),]
+        self.renderObjects = self.entities.copy()
+        self.camera = [0, 0]
+        self.tileMap = map(900, 700, self, 300) 
 
     def run(self):
         while self.running:
@@ -23,12 +36,18 @@ class main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-        self.player.tick()
         self.clock.tick(60)
+        for entity in self.entities:
+            entity.tick()
+        self.camera = [self.player.x-self.screen.width//2+self.player.width//2, self.player.y-self.screen.height//2+self.player.height//2]
         
     def render(self):
-        self.screen.fill((255, 255, 255))
-        self.player.render(self.assets["default"])
+        #self.screen.fill((255, 255, 255))
+        self.tileMap.render()
+        
+        self.renderObjects = sorted(self.renderObjects, key=lambda x: x.y)
+        for object in self.renderObjects:
+            object.render(self.assets["default"])
         pygame.display.flip()
         
 main().run()
