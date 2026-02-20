@@ -30,7 +30,11 @@ class Entity():
         if self.facingLeft:
             image = pygame.transform.flip(image, True, False)
 
-        self.game.screen.blit(image, (self.x-self.game.camera[0], self.y-self.game.camera[1]))
+        center_x = self.x + self.width / 2
+        center_y = self.y + self.height / 2
+        draw_x = center_x - image.get_width() / 2 - self.game.camera[0]
+        draw_y = center_y - image.get_height() / 2 - self.game.camera[1]
+        self.game.screen.blit(image, (draw_x, draw_y))
         
     def onBlock(self):
         return (self.x//self.game.tileMap.tileSize, self.y//self.game.tileMap.tileSize)

@@ -1,26 +1,37 @@
 from scripts.Entity import Entity
 import pygame
 import random
+import math
 
 class mobs(Entity):
     def __init__(self, x, y, width, height, game, speed):
-        super().__init__(x, y, width, height, game)
+        super().__init__(x, y, width, height, game, speed)
         self.action = "none"
         self.target = [None, None]
         self.roamTimer = 0
-        self.speed = speed
         self.targetEntities = []
         self.dangerEntities = []
-        self.prey = {"mobs": [], "player": []}
+        self.interactions = {"mobs": {'player': "none"}, "player": {}, "rabbit": {"player": "flee"}}
         self.detectionRange = 200
+        self.heightenedAwareness = False
+        self.heightendAwarenessTimer = 0
+        self.heightenedAwarenessRange = 300
         
     def tick(self):
+        self.targetEntities = []
+        self.dangerEntities = []
         for entity in self.game.entities:
-            if entity != self and self.distanceFrom(entity) < self.detectionRange:
-                if entity.__class__.__name__ in self.prey[self.__class__.__name__]:
+            if entity != self and self.distanceFromEntity(entity) < (self.detectionRange if not self.heightenedAwareness else self.heightenedAwarenessRange):
+                if self.interactions[self.__class__.__name__][entity.__class__.__name__] == "fight":
                     self.targetEntities.append(entity)
-                elif self.__class__.__name__ in self.prey[entity.__class__.__name__]:
+                elif self.interactions[self.__class__.__name__][entity.__class__.__name__] == "flee":
                     self.dangerEntities.append(entity)
+        
+        if self.dangerEntities:
+            self.runAway(self.dangerEntities)
+        elif self.targetEntities:
+            self.runTowards(self.targetEntities)
+        
         self.movement = [0, 0]
         if self.roamTimer == 0:
             self.roaming()
@@ -28,20 +39,14 @@ class mobs(Entity):
         if self.action == "none":
             self.roamTimer -= 1
         if self.target != [None, None]:
-            if self.target == [self.x, self.y] and self.action == "roaming":
+            self.movement[0] = self.target[0] - self.x
+            self.movement[1] = self.target[1] - self.y
+            distance = self.distanceFrom(self.target[0], self.target[1])
+            if distance < self.speed+10 and self.action == "roaming":
                 self.action = "none"
-            if self.x < self.target[0]:
-                self.movement[0] = min(self.speed, self.target[0] - self.x)
-            elif self.x > self.target[0]:
-                self.movement[0] = max(-self.speed, self.target[0] - self.x)
-            else:
-                self.movement[0] = 0
-            if self.y < self.target[1]:
-                self.movement[1] = min(self.speed, self.target[1] - self.y)
-            elif self.y > self.target[1]:
-                self.movement[1] = max(-self.speed, self.target[1] - self.y)
-            else:
-                self.movement[1] = 0
+                self.movement = [0, 0]
+                self.target = [None, None]
+
         super().tick()
         
     def render(self, image):
@@ -49,12 +54,17 @@ class mobs(Entity):
         
     def roaming(self):
         self.action = "roaming"
+        angle = random.uniform(0, 2*math.pi)
+        rand = random.randint(10, 100)
         self.target = [
-            self.x + random.randint(-300, 300),
-            self.y + random.randint(-300, 300),
+            self.x + math.cos(angle)*self.speed*rand,
+            self.y + math.sin(angle)*self.speed*rand,
         ]
         
-    def distanceFrom(self, entity):
+    def distanceFrom(self, x, y):
+        return ((self.x - x) ** 2 + (self.y - y) ** 2) ** 0.5
+    
+    def distanceFromEntity(self, entity):
         return ((self.x - entity.x) ** 2 + (self.y - entity.y) ** 2) ** 0.5
     
     def shortestPath(self, entities):

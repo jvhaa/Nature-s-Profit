@@ -1,6 +1,7 @@
 import pygame
+from scripts.mobs.rabbit import rabbit
 from scripts.player import player
-from scripts.mobs import mobs
+from scripts.mobs.mobs import mobs
 from scripts.images import Animation, loadImages, loadImage
 from scripts.mapGenerator import map
 
@@ -19,10 +20,11 @@ class main():
             "2" : loadImage("2"),
             "3" : loadImage("3"),
             "4" : loadImage("4"),
+            "rabbit/idle" : Animation("rabbit/idle", loop=True),
         }
         self.entities = [
             self.player,
-            mobs(300, 300, 50, 50, self, 6),]
+            rabbit(400, 400, self)]
         self.renderObjects = self.entities.copy()
         self.camera = [0, 0]
         self.tileMap = map(900, 700, self, 300) 
@@ -42,7 +44,6 @@ class main():
         self.camera = [self.player.x-self.screen.width//2+self.player.width//2, self.player.y-self.screen.height//2+self.player.height//2]
         
     def render(self):
-        #self.screen.fill((255, 255, 255))
         self.tileMap.render()
         
         self.renderObjects = sorted(self.renderObjects, key=lambda x: x.y)
