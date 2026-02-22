@@ -23,9 +23,11 @@ class main():
             "rabbit/idle" : Animation("rabbit/idle", loop=True),
         }
         self.entities = [
-            self.player,
-            rabbit(400, 400, self)]
-        self.renderObjects = self.entities.copy()
+            self.player]
+
+        self.entities.extend([rabbit(200, 200, self) for i in range(10)])
+        self.renderObjects = []
+        self.renderObjects.extend(self.entities)
         self.camera = [0, 0]
         self.tileMap = map(900, 700, self, 300) 
 

@@ -15,7 +15,7 @@ class map():
     def tilemap(self):
         for y in range(-self.height, self.height):
             for x in range(-self.width, self.width):
-                tileNumber = (self.pNoise.value(x, y)+0.6)/0.28
+                tileNumber = (self.pNoise.value(x, y)+0.6)/0.27
                 self.tile[(x, y)] = self.game.assets[str(int(tileNumber))]
                     
     def render(self):

@@ -11,8 +11,10 @@ class mobs(Entity):
         self.roamTimer = 0
         self.targetEntities = []
         self.dangerEntities = []
-        self.interactions = {"mobs": {'player': "none"}, "player": {}, "rabbit": {"player": "flee"}}
-        self.detectionRange = 200
+        self.interactions = {"mobs": {'player': "none"}, "player": {}, "rabbit": {"player": "fight", "rabbit": "flee"}}
+        self.lurkRange = 100
+        self.attackRange = 40
+        self.dangerRange = 200
         self.heightenedAwareness = False
         self.heightendAwarenessTimer = 0
         self.heightenedAwarenessRange = 300
@@ -21,16 +23,22 @@ class mobs(Entity):
         self.targetEntities = []
         self.dangerEntities = []
         for entity in self.game.entities:
-            if entity != self and self.distanceFromEntity(entity) < (self.detectionRange if not self.heightenedAwareness else self.heightenedAwarenessRange):
+            if entity != self and self.distanceFromEntity(entity) < (self.dangerRange if not self.heightenedAwareness else self.heightenedAwarenessRange):
                 if self.interactions[self.__class__.__name__][entity.__class__.__name__] == "fight":
                     self.targetEntities.append(entity)
-                elif self.interactions[self.__class__.__name__][entity.__class__.__name__] == "flee":
+            if entity != self and self.distanceFromEntity(entity) < (self.dangerRange if not self.heightenedAwareness else self.heightenedAwarenessRange):
+                if self.interactions[self.__class__.__name__][entity.__class__.__name__] == "flee":
                     self.dangerEntities.append(entity)
         
         if self.dangerEntities:
             self.runAway(self.dangerEntities)
+            self.action = "flee"
         elif self.targetEntities:
             self.runTowards(self.targetEntities)
+            self.action = "attack"
+        else:
+            if self.action != "roaming":
+                self.action = "none"
         
         self.movement = [0, 0]
         if self.roamTimer == 0:
@@ -86,6 +94,13 @@ class mobs(Entity):
                 self.x + (self.x - closestEntity.x),
                 self.y + (self.y - closestEntity.y),
             ]
+            if self.x == closestEntity.x and self.y == closestEntity.y:
+                angle = random.uniform(0, 2*math.pi)
+                self.target = [
+                    self.x + math.cos(angle)*self.speed*100,
+                    self.y + math.sin(angle)*self.speed*100,
+                ]
+            self.roamTimer = 120
     
     def runTowards(self, entities):
         closestEntity = self.shortestPath(entities)
