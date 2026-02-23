@@ -1,7 +1,7 @@
-from scripts.Entity import Entity
+from scripts.Object import Object
 import pygame
 
-class player(Entity):
+class player(Object):
     def __init__(self, x, y, width, height, game):
         super().__init__(x, y, width, height, game, speed=10)
         

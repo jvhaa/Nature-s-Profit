@@ -1,7 +1,7 @@
 import pygame
 import math
 
-class Entity():
+class Object():
     def __init__(self, x, y, width, height, game, speed=0):
         self.x = x
         self.y = y
@@ -27,6 +27,7 @@ class Entity():
         self.y += self.movement[1] + self.vel[1]
         
     def render(self, image):
+        # centers the 
         if self.facingLeft:
             image = pygame.transform.flip(image, True, False)
 

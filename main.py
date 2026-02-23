@@ -1,9 +1,11 @@
 import pygame
 from scripts.mobs.rabbit import rabbit
+from scripts.mobs.wolf import wolf
 from scripts.player import player
 from scripts.mobs.mobs import mobs
 from scripts.images import Animation, loadImages, loadImage
 from scripts.mapGenerator import map
+import random
 
 pygame.init()
 
@@ -21,15 +23,16 @@ class main():
             "3" : loadImage("3"),
             "4" : loadImage("4"),
             "rabbit/idle" : Animation("rabbit/idle", loop=True),
+            "wolf/idle" : Animation("wolf/idle", loop=True),
         }
-        self.entities = [
+        self.objects = [
             self.player]
 
-        self.entities.extend([rabbit(200, 200, self) for i in range(10)])
-        self.renderObjects = []
-        self.renderObjects.extend(self.entities)
+        self.objects.extend([rabbit(random.randint(-100, 100), random.randint(-100, 100), self) for i in range(1)])
+        self.objects.extend([wolf(random.randint(-100, 100), random.randint(-100, 100), self) for i in range(1)])
         self.camera = [0, 0]
-        self.tileMap = map(900, 700, self, 300) 
+        self.tileMap = map(0, 0, self, 300)
+        #self.tileMap = map(900, 700, self, 300) 
 
     def run(self):
         while self.running:
@@ -41,15 +44,16 @@ class main():
             if event.type == pygame.QUIT:
                 self.running = False
         self.clock.tick(60)
-        for entity in self.entities:
-            entity.tick()
+        for object in self.objects:
+            object.tick()
         self.camera = [self.player.x-self.screen.width//2+self.player.width//2, self.player.y-self.screen.height//2+self.player.height//2]
         
     def render(self):
-        self.tileMap.render()
+        self.screen.fill((0, 255, 0))
+        #self.tileMap.render()
         
-        self.renderObjects = sorted(self.renderObjects, key=lambda x: x.y)
-        for object in self.renderObjects:
+        self.objects = sorted(self.objects, key=lambda x: x.y)
+        for object in self.objects:
             object.render(self.assets["default"])
         pygame.display.flip()
         
