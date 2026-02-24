@@ -3,7 +3,8 @@ import pygame
 
 class player(Object):
     def __init__(self, x, y, width, height, game):
-        super().__init__(x, y, width, height, game, speed=10)
+        super().__init__(x, y, width, height, game)
+        self.speed = 20
         
         
     def tick(self):

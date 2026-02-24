@@ -28,8 +28,8 @@ class main():
         self.objects = [
             self.player]
 
-        self.objects.extend([rabbit(random.randint(-100, 100), random.randint(-100, 100), self) for i in range(1)])
-        self.objects.extend([wolf(random.randint(-100, 100), random.randint(-100, 100), self) for i in range(1)])
+        self.objects.extend([rabbit(random.randint(-100, 100), random.randint(-100, 100), self) for i in range(10)])
+        self.objects.extend([wolf(random.randint(-100, 100), random.randint(-100, 100), self) for i in range(4)])
         self.camera = [0, 0]
         self.tileMap = map(0, 0, self, 300)
         #self.tileMap = map(900, 700, self, 300) 

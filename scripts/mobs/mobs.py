@@ -16,10 +16,9 @@ class mobs(Object):
             "rabbit": {"player": "none", "rabbit": "none", "wolf": "flee"}, 
             "wolf": {"player": "none", "rabbit": "fight", "wolf": "none"}
                              }
-        self.lurkRange = 200
+        self.chaseRange = 200
         self.attackRange = 40
         self.dangerRange = 1000
-        self.heightenedAwarenessRange = 50
         self.health = 100
         self.damage = 20
         
@@ -27,7 +26,7 @@ class mobs(Object):
         self.targetObjects = []
         self.dangerObjects = []
         for object in self.game.objects:
-            if object != self and self.distanceFromObject(object) < self.lurkRange:
+            if object != self and self.distanceFromObject(object) < self.chaseRange:
                 if self.interactions[self.__class__.__name__][object.__class__.__name__] == "fight":
                     self.targetObjects.append(object)
             if object != self and self.distanceFromObject(object) < self.dangerRange:
@@ -35,7 +34,8 @@ class mobs(Object):
                     self.dangerObjects.append(object)
         
         if self.dangerObjects:
-            self.runAway(self.dangerObjects)
+            if self.action != "flee" or not self.target:
+                self.runAway(self.dangerObjects)
             self.action = "flee"
         elif self.targetObjects:
             self.runTowards(self.targetObjects)
@@ -56,10 +56,11 @@ class mobs(Object):
             self.movement[0] = tar[0] - self.x
             self.movement[1] = tar[1] - self.y
             distance = self.distanceFrom(tar[0], tar[1])
-            if distance < self.speed+10 and self.action == "roaming":
-                self.action = "none"
+            if distance < self.speed+10:
                 self.movement = [0, 0]
                 self.target.pop(0)
+                if not self.target:
+                    self.action = "none"
 
         super().tick()
         
@@ -127,10 +128,11 @@ class mobs(Object):
             target = random.choice(low_threat_cells)
         else:
             target = (5, 5)
-                        
+            
         path = self.aStar(grid, (5, 5), target)
         if path:
-            self.target = [[t[0]* self.game.tileMap.tileSize, t[1] * self.game.tileMap.tileSize] for t in path]
+            curPos = self.onBlock()
+            self.target = [[(t[0]-5+curPos[0])* self.game.tileMap.tileSize, (t[1]-5+curPos[1]) * self.game.tileMap.tileSize] for t in path[1:]]
         else:
             self.target = []
         
