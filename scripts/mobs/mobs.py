@@ -5,45 +5,52 @@ import math
 import heapq
 
 class mobs(Object):
-    def __init__(self, x, y, width, height, game, speed):
-        super().__init__(x, y, width, height, game, speed)
+    def __init__(self, x, y, game):
+        super().__init__(x, y, game)
         self.action = "none"
         self.target = []
         self.roamTimer = 0
         self.targetObjects = []
         self.dangerObjects = []
         self.interactions = {
-            "rabbit": {"player": "none", "rabbit": "none", "wolf": "flee"}, 
-            "wolf": {"player": "none", "rabbit": "fight", "wolf": "none"}
+            "rabbit": {"player": "none", "rabbit": "none", "wolf": "flee", "tree" : "none"}, 
+            "wolf": {"player": "none", "rabbit": "chase", "wolf": "none", "tree": "none"}
                              }
+        
         self.chaseRange = 200
         self.attackRange = 40
         self.dangerRange = 1000
         self.health = 100
         self.damage = 20
+        self.downTimer = 0
         
     def tick(self):
-        self.targetObjects = []
-        self.dangerObjects = []
-        for object in self.game.objects:
-            if object != self and self.distanceFromObject(object) < self.chaseRange:
-                if self.interactions[self.__class__.__name__][object.__class__.__name__] == "fight":
-                    self.targetObjects.append(object)
-            if object != self and self.distanceFromObject(object) < self.dangerRange:
-                if self.interactions[self.__class__.__name__][object.__class__.__name__] == "flee":
-                    self.dangerObjects.append(object)
+        if self.downTimer == 0:
+            self.downTimer = 100
+            self.targetObjects = []
+            self.dangerObjects = []
         
-        if self.dangerObjects:
-            if self.action != "flee" or not self.target:
-                self.runAway(self.dangerObjects)
-            self.action = "flee"
-        elif self.targetObjects:
-            self.runTowards(self.targetObjects)
-            self.action = "fight"
+            for entity in self.game.entities:
+                if entity != self and self.distanceFromObject(entity) < self.chaseRange:
+                    if self.interactions[self.__class__.__name__][entity.__class__.__name__] in ["chase", "attack"]:
+                        self.targetObjects.append(entity)
+                if entity != self and self.distanceFromObject(entity) < self.dangerRange:
+                    if self.interactions[self.__class__.__name__][entity.__class__.__name__] == "flee":
+                        self.dangerObjects.append(entity)
+        
+            if self.dangerObjects:
+                if self.action != "flee" or not self.target:
+                    self.runAway(self.dangerObjects)
+                self.action = "flee"
+            elif self.targetObjects:
+                self.runTowards(self.targetObjects)
+                self.action = "chase"
+            else:
+                if self.action in ["flee", "chase"]:
+                    self.action = "none"
+                    self.target = []
         else:
-            if self.action in ["flee", "fight"]:
-                self.action = "none"
-                self.target = []
+            self.downTimer -= 1
         
         self.movement = [0, 0]
         if self.roamTimer == 0:
@@ -61,11 +68,11 @@ class mobs(Object):
                 self.target.pop(0)
                 if not self.target:
                     self.action = "none"
-
+        
         super().tick()
         
-    def render(self, image):
-        super().render(image)
+    def render(self):
+        super().render()
         
     def roaming(self):
         self.action = "roaming"
@@ -95,8 +102,10 @@ class mobs(Object):
         return closestObject
     
     def runAway(self, objects):
-        grid = [[0 for _ in range(11)] for _ in range(11)]
+        r, c = self.dangerRange//self.game.tileMap.tileSize + 1, self.dangerRange//self.game.tileMap.tileSize + 1
+        grid = [[0 for _ in range(r)] for _ in range(c)]
         pos = self.onBlock()
+        gridPos = (r//2+1, c//2+1)
         
         for object in objects:
             x, y = object.onBlock()
@@ -108,8 +117,8 @@ class mobs(Object):
                 for i in range(-radius, radius+1):
                     for j in range(-radius, radius+1):
                         dist = math.sqrt(i*i + j*j)
-                        xPos, yPos = relx+5+i, rely+5+j
-                        if 0 <= xPos < 11 and 0 <= yPos < 11:
+                        xPos, yPos = relx+r//2+1+i, rely+c//2+1+j
+                        if 0 <= xPos < r and 0 <= yPos < c:
                             grid[xPos][yPos] += max(0, initial - math.ceil(dist*rateOfChange))
                             
         minimum = 10000
@@ -117,7 +126,7 @@ class mobs(Object):
         
         for y, line in enumerate(grid):
             for x, cell in enumerate(line):
-                if type(cell) == int and not (x == 5 and y == 5):
+                if type(cell) == int and not (x == r//2+1 and y == c//2+1):
                     if cell < minimum:
                         minimum = cell
                         low_threat_cells = [(x, y)]
@@ -126,13 +135,11 @@ class mobs(Object):
         
         if low_threat_cells:
             target = random.choice(low_threat_cells)
-        else:
-            target = (5, 5)
             
-        path = self.aStar(grid, (5, 5), target)
+        path = self.aStar(grid, gridPos, target)
         if path:
             curPos = self.onBlock()
-            self.target = [[(t[0]-5+curPos[0])* self.game.tileMap.tileSize, (t[1]-5+curPos[1]) * self.game.tileMap.tileSize] for t in path[1:]]
+            self.target = [[(t[0]-r//2-1+curPos[0])* self.game.tileMap.tileSize, (t[1]-c//2-1+curPos[1]) * self.game.tileMap.tileSize] for t in path[1:]]
         else:
             self.target = []
         

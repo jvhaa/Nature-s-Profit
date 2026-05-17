@@ -15,12 +15,16 @@ def loadImages(path):
         
 class Animation():
     def __init__(self, path, loop = False):
+        self.path = path
         self.frame = 0
         self.images = loadImages(path)
         self.ticks = len(self.images)
         self.length = len(self.images)
         self.loop = loop
         self.tick = 0
+
+    def copy(self):
+        return Animation(self.path, self.loop)
     
     def update(self):
         self.image = self.images[self.frame]
